@@ -1,9 +1,26 @@
+### Create new category
 POST http://localhost:3000/api/users
+X-API-Key: goblogger
 Accept: application/json
 Content-Type: application/json
 
 {
-  "name" : "ifqy",
-  "password" : "torabika"
+  "name" : "abc",
+  "password" : "anjay"
 }
 
+### Get user by Id
+GET http://localhost:3000/api/users/1
+X-API-Key: goblogger
+Accept: application/json
+
+### Update category by id
+PUT http://localhost:3000/api/users/2
+X-API-Key: goblogger
+Accept: application/json
+Content-Type: application/json
+
+{
+  "name" : "abc",
+  "password" : "abc"
+}

@@ -14,8 +14,8 @@ import (
 
 type UserServiceImplementation struct {
 	UserRepository repository.UserRepository
-	DB *sql.DB
-	validate *validator.Validate
+	DB             *sql.DB
+	validate       *validator.Validate
 }
 
 func NewUserService(userRepository repository.UserRepository, DB *sql.DB, validator *validator.Validate) UserService {
@@ -31,11 +31,11 @@ func (service *UserServiceImplementation) RegisterUser(ctx context.Context, requ
 	defer helper.CommitOrRollback(tx)
 
 	userInput := domain.User{
-		Name: request.Name,
+		Name:     request.Name,
 		Password: request.Password,
 	}
 
-	userSignUp := service.UserRepository.SignUp(ctx,tx,userInput)
+	userSignUp := service.UserRepository.SignUp(ctx, tx, userInput)
 	return helper.ToUserResponse(userSignUp)
 
 }
@@ -44,20 +44,34 @@ func (service *UserServiceImplementation) LoginUser(ctx context.Context, request
 	err := service.validate.Struct(request)
 	helper.PanicIfError(err)
 
-	tx,err := service.DB.Begin()
+	tx, err := service.DB.Begin()
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 
 	userInput := domain.User{
-		Name:      request.Name,
-		Password:  request.Password,
+		Name:     request.Name,
+		Password: request.Password,
 	}
 
-	userLogin, err := service.UserRepository.Login(ctx,tx,userInput)
+	userLogin, err := service.UserRepository.Login(ctx, tx, userInput)
 	if err != nil {
 		errors.New("tidak ada data nama dan password")
 	}
 	return helper.ToUserResponse(userLogin)
+}
+
+func (service *UserServiceImplementation) FindById(ctx context.Context, userId int) web.UserResponse {
+	tx, err := service.DB.Begin()
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollback(tx)
+
+	user, err := service.UserRepository.FindById(ctx, tx, userId)
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+	}
+
+	return helper.ToUserResponse(user)
+
 }
 
 func (service *UserServiceImplementation) Update(ctx context.Context, request web.UpdateUserRequest) web.UserResponse {
@@ -65,7 +79,7 @@ func (service *UserServiceImplementation) Update(ctx context.Context, request we
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 
-	user, err := service.UserRepository.FindById(ctx,tx,request.Id)
+	user, err := service.UserRepository.FindById(ctx, tx, request.Id)
 	if err != nil {
 		panic(exception.NewNotFoundError(err.Error()))
 	}
@@ -73,7 +87,7 @@ func (service *UserServiceImplementation) Update(ctx context.Context, request we
 	user.Name = request.Name
 	user.Password = request.Password
 
-	user = service.UserRepository.Update(ctx,tx,user)
+	user = service.UserRepository.Update(ctx, tx, user)
 
 	return helper.ToUserResponse(user)
 }
@@ -83,25 +97,10 @@ func (service *UserServiceImplementation) Delete(ctx context.Context, userId int
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 
-	user, err := service.UserRepository.FindById(ctx,tx,userId)
+	user, err := service.UserRepository.FindById(ctx, tx, userId)
 	if err != nil {
 		panic(exception.NewNotFoundError(err.Error()))
 	}
 
-	service.UserRepository.Delete(ctx,tx,user)
+	service.UserRepository.Delete(ctx, tx, user)
 }
-
-func (service *UserServiceImplementation) FindById(ctx context.Context, userId int) web.UserResponse {
-	tx,err := service.DB.Begin()
-	helper.PanicIfError(err)
-	defer helper.CommitOrRollback(tx)
-
-	user,err := service.UserRepository.FindById(ctx,tx,userId)
-	if err != nil {
-		panic(exception.NewNotFoundError(err.Error()))
-	}
-
-	return helper.ToUserResponse(user)
-
-}
-

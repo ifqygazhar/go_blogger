@@ -9,7 +9,7 @@ import (
 func NewRouter(userController controller.UserController) *httprouter.Router {
 	router := httprouter.New()
 
-	router.GET("/api/users/:userId", userController.FindById )
+	router.GET("/api/users/:usersId", userController.FindById)
 	router.POST("/api/users", userController.RegisterUser)
 	router.PUT("/api/users/:userId", userController.Update)
 	router.DELETE("/api/users/:userId", userController.Delete)
